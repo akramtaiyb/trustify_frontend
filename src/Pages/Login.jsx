@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button, Card, Label, Spinner, TextInput } from "flowbite-react";
+import { Button, Card, Label, TextInput } from "flowbite-react";
 import ApplicationLogo from "../components/ApplicationLogo";
 import Link from "../components/Link";
 import Footer from "../templates/Footer";
@@ -9,7 +8,6 @@ import LoaderSpinner from "../components/LoaderSpinner";
 
 export default function Login() {
   const { login } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);

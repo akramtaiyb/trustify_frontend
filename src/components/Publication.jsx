@@ -209,7 +209,7 @@ const Publication = ({ publication, onRemove }) => {
   }, [publication]);
 
   return (
-    <Card className="w-[40%] rounded-3xl">
+    <Card className="min-w-96 max-w-[60%] lg:max-w-[40%] rounded-3xl">
       <div className="flex flex-row items-center justify-between">
         <UserAvatar user={user} created_at={created_at} />
         {user.id === auth.user.id && (

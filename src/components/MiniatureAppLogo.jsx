@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function MiniatureAppLogo() {
+  const navigate = useNavigate();
   return (
     <svg
       width="103"
@@ -8,7 +10,8 @@ export default function MiniatureAppLogo() {
       viewBox="0 0 103 103"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="w-10 h-fit"
+      className="w-10 h-fit cursor-pointer"
+      onClick={() => navigate("/journal")}
     >
       <circle cx="51.5" cy="51.5" r="51.5" fill="#111827" />
       <path

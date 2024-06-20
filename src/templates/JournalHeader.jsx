@@ -7,9 +7,11 @@ import {
   AtSymbolIcon,
   Bars3Icon,
 } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 export default function JournalHeader() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="z-10 w-screen px-9 sticky bg-white top-0 flex items-center justify-between border-b py-4">
@@ -35,11 +37,11 @@ export default function JournalHeader() {
         )}
         inline
       >
-        <Dropdown.Item>
+        <Dropdown.Item onClick={() => navigate(`/profile/${user.username}`)}>
           <AtSymbolIcon className="w-4 mr-2" />
           Profile
         </Dropdown.Item>
-        <Dropdown.Item>
+        <Dropdown.Item onClick={() => logout()}>
           <ArrowRightStartOnRectangleIcon className="w-4 mr-2" />
           Logout
         </Dropdown.Item>

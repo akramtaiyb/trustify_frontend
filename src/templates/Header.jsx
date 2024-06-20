@@ -20,23 +20,25 @@ export default function Header() {
   return isLoading ? (
     <LoadingPage />
   ) : (
-    <div className="z-10 w-screen px-9 sticky bg-white top-0 flex items-center justify-between">
-      <div className="text-l">Because Truth Matters.</div>
-      <ApplicationLogo className="w-32" />
-      <div className="flex items-center justify-center gap-4">
+    <div className="z-50 w-screen px-9 sticky bg-white top-0 flex items-center justify-between">
+      <div className="w-[20%] text-sm text-center">Because Truth Matters.</div>
+      <div className="flex-1 flex items-center justify-center">
+        <ApplicationLogo className="w-32" />
+      </div>
+      <div className="w-[20%] flex items-center justify-center gap-4">
         {isAuth ? (
           <>
             <span>{user.name}</span>
-            <Button color="gray" onClick={logout}>
+            <Button size="sm" color="gray" onClick={logout}>
               Logout
             </Button>
           </>
         ) : (
           <>
-            <Button color="gray" onClick={handleSignInBtnClick}>
+            <Button size="sm" color="gray" onClick={handleSignInBtnClick}>
               Login
             </Button>
-            <Button color="dark" onClick={handleSignUpBtnClick}>
+            <Button size="sm" color="dark" onClick={handleSignUpBtnClick}>
               Sign Up
             </Button>
           </>

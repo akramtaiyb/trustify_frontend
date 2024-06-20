@@ -1,4 +1,7 @@
-export default function ApplicationLogo({ color = "light" }) {
+import { useNavigate } from "react-router-dom";
+
+export default function ApplicationLogo({ className, color = "light" }) {
+  const navigate = useNavigate();
   return (
     <>
       {color === "light" ? (
@@ -8,7 +11,8 @@ export default function ApplicationLogo({ color = "light" }) {
           viewBox="0 0 543 180"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="h-16 my-4"
+          className={`h-16 my-4 ${className}`}
+          onClick={() => navigate("/")}
         >
           <rect width="543" height="180" fill="transparent" />
           <path

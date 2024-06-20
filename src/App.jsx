@@ -3,6 +3,7 @@ import Login from "./Pages/Login";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SignUp from "./Pages/SignUp";
 import Wall from "./Pages/Wall";
+import Profile from "./Pages/Profile";
 import { AuthProvider } from "../context/AuthContext";
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/journal" element={<Wall />} />
+          <Route path="/profile/:username" element={<Profile />} />
         </Routes>
       </AuthProvider>
     </Router>
