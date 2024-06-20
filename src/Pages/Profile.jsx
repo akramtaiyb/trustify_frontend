@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import JournalHeader from "../templates/JournalHeader";
 import { Card } from "flowbite-react";
@@ -6,41 +6,67 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
 import { Datetime } from "../../utils/datetime";
 import LoadingSpinner from "../components/LoaderSpinner";
+import unknown from "../assets/urban-line-man-in-suit-line.gif";
+import {
+  ArrowDownCircleIcon,
+  ArrowTrendingUpIcon,
+  ArrowUpCircleIcon,
+  ChatBubbleLeftRightIcon,
+  DocumentDuplicateIcon,
+} from "@heroicons/react/24/solid";
+import Publication from "../components/Publication";
 
 export default function Profile() {
   const params = useParams();
   const { user } = useAuth();
+
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [publications, setPublications] = useState([]);
 
-  const fetchProfile = () => {
-    if (params.username !== user.username) {
-      try {
-        setIsLoading(true);
-        axios.get(`/api/profile/${params.username}`).then((res) => {
-          setProfile(res.data);
-          setIsLoading(false);
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
-      setProfile(user);
+  const fetchProfile = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await axios.get(`/api/profile/${params.username}`);
+      setProfile(res.data);
+      setPublications(res.data.publications.reverse());
+    } catch (error) {
+      setError(
+        `Oops! We couldn't find a user with the following username ${params.username}.`
+      );
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [params.username]);
+
+  const removePublication = useCallback((id) => {
+    setPublications((prevPublications) =>
+      prevPublications.filter((publication) => publication.id !== id)
+    );
+  }, []);
 
   useEffect(() => {
     fetchProfile();
-    console.log(profile);
-  }, []);
+  }, [fetchProfile]);
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center gap-6">
+    <div className="w-screen h-screen flex flex-col items-center justify-center">
       <JournalHeader />
-      <div className="flex-1 w-[70%]">
-        <Card className="py-4 flex flex-col items-center w-full">
+      <main
+        // ref={mainRef}
+        className="wall w-full flex-1 flex flex-col items-center gap-4 py-12 overflow-y-auto"
+      >
+        <Card className="rounded-3xl py-4 flex flex-col items-center min-w-[70%] w-fit">
           {isLoading ? (
             <LoadingSpinner className="w-[24px]" />
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center font-bold text-xl text-gray-800 gap-4">
+              <img className="h-36" src={unknown} alt="Unknown user" />
+              {error}
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-6">
               <div className="rounded-full w-20 h-20 bg-gray-500 text-white text-3xl font-bold flex items-center justify-center">
@@ -51,11 +77,58 @@ export default function Profile() {
                 <div>
                   Joined {profile ? Datetime(profile?.created_at) : null}
                 </div>
+                <div className="flex items-center justify-center gap-6 mt-6">
+                  <div className="flex items-center justify-center gap-2 text-sm text-teal-500 font-bold">
+                    <ArrowTrendingUpIcon className="w-5" />
+                    {"Reputation :"}
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    {profile?.reputation}
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500 font-bold">
+                    <DocumentDuplicateIcon className="w-5" />
+                    {"Publications :"}
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    {profile?.publications.length}
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-green-500 font-bold">
+                    <ArrowUpCircleIcon className="w-5" />
+                    {"Upvotes :"}
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    {
+                      profile?.votes.filter((vote) => vote.vote === "real")
+                        .length
+                    }
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-red-500 font-bold">
+                    <ArrowDownCircleIcon className="w-5" />
+                    {"Downvotes :"}
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    {
+                      profile?.votes.filter((vote) => vote.vote === "fake")
+                        .length
+                    }
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-blue-500 font-bold">
+                    <ChatBubbleLeftRightIcon className="w-5" />
+                    {"Comments :"}
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    {profile?.comments.length}
+                  </div>
+                </div>
               </div>
             </div>
           )}
         </Card>
-      </div>
+        {publications.map((publication, key) => (
+          <>
+            <Publication
+              key={key}
+              publication={publication}
+              onRemove={removePublication}
+            />
+          </>
+        ))}
+      </main>
     </div>
   );
 }

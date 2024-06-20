@@ -6,7 +6,13 @@ const Media = ({ file }) => {
 
   switch (fileType) {
     case "image":
-      return <img src={fileUrl} alt="Media File" className="rounded-lg mb-4" />;
+      return (
+        <img
+          src={fileUrl}
+          alt="image"
+          className="w-full object-contain rounded-lg mb-4"
+        />
+      );
     case "video":
       return (
         <video controls className="w-full h-auto rounded-lg mb-4">

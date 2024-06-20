@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Card, Button, Dropdown, Label, TextInput } from "flowbite-react";
 import {
@@ -21,9 +21,7 @@ const Publication = ({ publication, onRemove }) => {
     content,
     user,
     comments,
-    comments_count,
-    upvotes_count,
-    downvotes_count,
+    votes,
     has_upvoted,
     has_downvoted,
     has_commented,
@@ -34,30 +32,50 @@ const Publication = ({ publication, onRemove }) => {
 
   const [readyToComment, setReadyToComment] = useState(false);
   const [newComment, setNewComment] = useState("");
-  const [currentComments, setCurrentComments] = useState(comments);
-  const [upvotesCount, setUpvotesCount] = useState(upvotes_count);
-  const [downvotesCount, setDownvotesCount] = useState(downvotes_count);
-  const [userHasUpvoted, setUserHasUpvoted] = useState(has_upvoted);
-  const [userHasDownvoted, setUserHasDownvoted] = useState(has_downvoted);
-  const [currentVoteId, setCurrentVoteId] = useState(user_vote);
+  const [currentComments, setCurrentComments] = useState(null);
+  const [upvotesCount, setUpvotesCount] = useState(0);
+  const [downvotesCount, setDownvotesCount] = useState(0);
+  const [userHasUpvoted, setUserHasUpvoted] = useState(false);
+  const [userHasDownvoted, setUserHasDownvoted] = useState(false);
+  const [currentVoteId, setCurrentVoteId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [commentCount, setCommentCount] = useState(comments_count);
-  const [userHasCommented, setUserHasCommented] = useState(has_commented);
+  const [commentCount, setCommentCount] = useState(0);
+  const [userHasCommented, setUserHasCommented] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [newPublication, setNewPublication] = useState({
-    title: title,
-    content: content,
+    title: "",
+    content: "",
   });
   const [errors, setErrors] = useState({});
   const [readyToPost, setReadyToPost] = useState(false);
+  const [openDeletePubModal, setOpenDeletePubModal] = useState(false);
+
+  useEffect(() => {
+    setUpvotesCount(votes.filter((v) => v.vote === "real").length);
+    setDownvotesCount(votes.filter((v) => v.vote === "fake").length);
+    setCommentCount(comments.length);
+    setCurrentComments(comments);
+    setUserHasUpvoted(
+      votes.some((v) => v.user_id === user.id && v.vote === "real")
+    );
+    setUserHasDownvoted(
+      votes.some((v) => v.user_id === user.id && v.vote === "fake")
+    );
+    setCurrentVoteId(user_vote);
+    setUserHasCommented(comments.some((c) => c.user_id === user.id));
+    setNewPublication({
+      title: title,
+      content: content,
+    });
+  }, [publication]);
 
   const handleVote = async (voteType) => {
     if (voteType === "upvote" && userHasDownvoted) {
       setUserHasUpvoted(true);
-      setUpvotesCount(upvotesCount + 1);
+      setUpvotesCount((prevCount) => prevCount + 1);
       setUserHasDownvoted(false);
-      setDownvotesCount(downvotesCount > 0 ? downvotesCount - 1 : 0);
+      setDownvotesCount((prevCount) => (prevCount > 0 ? prevCount - 1 : 0));
 
       try {
         await axios.put(`/api/votes/${currentVoteId}`, { vote: "real" });
@@ -66,9 +84,9 @@ const Publication = ({ publication, onRemove }) => {
       }
     } else if (voteType === "downvote" && userHasUpvoted) {
       setUserHasDownvoted(true);
-      setDownvotesCount(downvotesCount + 1);
+      setDownvotesCount((prevCount) => prevCount + 1);
       setUserHasUpvoted(false);
-      setUpvotesCount(upvotesCount > 0 ? upvotesCount - 1 : 0);
+      setUpvotesCount((prevCount) => (prevCount > 0 ? prevCount - 1 : 0));
 
       try {
         await axios.put(`/api/votes/${currentVoteId}`, { vote: "fake" });
@@ -85,10 +103,10 @@ const Publication = ({ publication, onRemove }) => {
 
         if (voteType === "upvote") {
           setUserHasUpvoted(true);
-          setUpvotesCount(upvotesCount + 1);
+          setUpvotesCount((prevCount) => prevCount + 1);
         } else {
           setUserHasDownvoted(true);
-          setDownvotesCount(downvotesCount + 1);
+          setDownvotesCount((prevCount) => prevCount + 1);
         }
 
         setCurrentVoteId(response.data);
@@ -134,7 +152,7 @@ const Publication = ({ publication, onRemove }) => {
       setNewComment("");
       setSelectedFiles([]);
       setReadyToComment(false);
-      setCommentCount(commentCount + 1);
+      setCommentCount((prevCount) => prevCount + 1);
       setUserHasCommented(true);
     } catch (error) {
       console.error("Error adding comment:", error.message);
@@ -149,7 +167,7 @@ const Publication = ({ publication, onRemove }) => {
       setCurrentComments((prevComments) =>
         prevComments.filter((comment) => comment.id !== commentId)
       );
-      setCommentCount(commentCount > 0 ? commentCount - 1 : 0);
+      setCommentCount((prevCount) => (prevCount > 0 ? prevCount - 1 : 0));
       if (commentCount - 1 === 0) {
         setUserHasCommented(false);
       }
@@ -164,22 +182,17 @@ const Publication = ({ publication, onRemove }) => {
     formData.append("content", newPublication.content);
 
     try {
-      await axios
-        .put(`/api/publications/${id}`, { ...newPublication })
-        .then((res) => console.log(res));
+      await axios.put(`/api/publications/${id}`, { ...newPublication });
       setOpenEditModal(false);
     } catch (error) {
       console.error("Error editing publication:", error.message);
     }
   };
 
-  const [openDeletePubModal, setOpenDeletePubModal] = useState(false);
-
   const handleDeletePublication = async () => {
     try {
       await axios.delete(`/api/publications/${id}`);
       onRemove(id);
-      console.log("Publication deleted successfully");
       setOpenDeletePubModal(false);
     } catch (error) {
       console.error("Error deleting publication:", error);
@@ -194,22 +207,8 @@ const Publication = ({ publication, onRemove }) => {
     }));
   };
 
-  useEffect(() => {
-    setUserHasUpvoted(has_upvoted);
-    setUpvotesCount(upvotes_count);
-    setDownvotesCount(downvotes_count);
-    setCurrentComments(comments);
-    setCommentCount(comments_count);
-    setUserHasCommented(has_commented);
-
-    setNewPublication({
-      title: title,
-      content: content,
-    });
-  }, [publication]);
-
   return (
-    <Card className="min-w-96 max-w-[60%] lg:max-w-[40%] rounded-3xl">
+    <Card className="lg:min-w-[40%] max-w-[60%] lg:max-w-[40%] rounded-3xl">
       <div className="flex flex-row items-center justify-between">
         <UserAvatar user={user} created_at={created_at} />
         {user.id === auth.user.id && (
@@ -226,7 +225,7 @@ const Publication = ({ publication, onRemove }) => {
           </Dropdown>
         )}
       </div>
-      <div>
+      <div className="w-full h-fit">
         <div className="font-semibold">{newPublication.title}</div>
         <div className="mt-1 mb-6 text">{newPublication.content}</div>
         {media_files.map((file, key) => (

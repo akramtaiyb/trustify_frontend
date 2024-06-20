@@ -89,10 +89,16 @@ export default function Wall() {
     }
   };
 
-  const removePublication = (id) => {
-    setData((prevData) =>
-      prevData.filter((publication) => publication.id !== id)
-    );
+  const removePublication = async (id) => {
+    try {
+      await axios.delete(`/api/publications/${id}`);
+
+      setData((prevData) =>
+        prevData.filter((publication) => publication.id !== id)
+      );
+    } catch (error) {
+      console.error("Error deleting publication:", error);
+    }
   };
 
   useEffect(() => {
