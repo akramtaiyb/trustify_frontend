@@ -5,6 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --beige: #fefae0;
+}
+
 html {
   background: #fefae0;
   overflow-x: hidden;

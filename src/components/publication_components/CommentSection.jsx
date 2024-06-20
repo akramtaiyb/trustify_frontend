@@ -35,45 +35,6 @@ const CommentSection = ({
               </div>
             </div>
             <div className="rounded-md text-sm">{comment.content}</div>
-            {comment.media_files && comment.media_files.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {comment.media_files.map((file, index) => (
-                  <div key={index}>
-                    {file.type.startsWith("image/") && (
-                      <img
-                        src={file.url}
-                        alt="comment media"
-                        className="max-h-20 rounded"
-                      />
-                    )}
-                    {file.type.startsWith("video/") && (
-                      <video
-                        controls
-                        src={file.url}
-                        className="max-h-20 rounded"
-                      ></video>
-                    )}
-                    {file.type === "application/pdf" && (
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline"
-                      >
-                        View Document
-                      </a>
-                    )}
-                    {file.type === "image/gif" && (
-                      <img
-                        src={file.url}
-                        alt="comment gif"
-                        className="max-h-20 rounded"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         ))}
       </div>

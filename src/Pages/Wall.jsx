@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import JournalHeader from "../templates/JournalHeader";
 import Publication from "../components/Publication";
 import axios from "../../api/axios";
@@ -7,83 +7,58 @@ import bedRock from "../assets/bedrock.png";
 import LoaderSpinner from "../components/LoaderSpinner";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import { Button, Tooltip } from "flowbite-react";
+import { useAuth } from "../../context/AuthContext";
+import LoadingPage from "../components/LoadingPage";
 
 export default function Wall() {
+  const { isLoading } = useAuth();
+
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [pageIsLoading, setPageIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [newPosts, setNewPosts] = useState(false);
 
-  const getData = async (page) => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`/api/publications?page=${page}`);
-      setData((prevData) => [...prevData, ...res.data.data]);
-      setHasMore(res.data.current_page < res.data.last_page);
-    } catch (error) {
-      console.error("Error fetching data:", error.message);
-    }
-    setLoading(false);
-  };
+  const mainRef = useRef(null);
 
-  const checkForNewPosts = async () => {
-    try {
-      const res = await axios.get(`/api/publications?page=1`);
-      const latestPostId = res.data.data[0]?.id;
-      if (data.length > 0 && data[0].id < latestPostId) {
-        setNewPosts(true);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`/api/publications?page=${page}`);
+        const newData = res.data.data.filter(
+          (newPublication) =>
+            !data.some(
+              (existingPublication) =>
+                existingPublication.id === newPublication.id
+            )
+        );
+
+        setData((prevData) => [...prevData, ...newData]);
+        setHasMore(res.data.current_page < res.data.last_page);
+      } catch (error) {
+        console.error("Error fetching data:", error.message);
       }
-    } catch (error) {
-      console.error("Error checking for new posts:", error.message);
-    }
-  };
+      setLoading(false);
+    };
 
-  const handleScroll = useCallback(() => {
-    if (
-      window.innerHeight + document.documentElement.scrollTop + 1 >=
-        document.documentElement.scrollHeight &&
-      !loading &&
-      hasMore
-    ) {
-      setPage((prevPage) => prevPage + 1);
-    }
-  }, [loading, hasMore]);
-
-  const handleRefresh = async () => {
-    setPage(1);
-    setData([]);
-    await getData(1);
-    setNewPosts(false);
-  };
-
-  const postPublication = async (newPublication) => {
-    try {
-      const res = await axios.post("/api/publications", newPublication, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      setData((prevData) => [res.data, ...prevData]);
-    } catch (error) {
-      console.error(
-        "Error posting publication:",
-        error.message,
-        error.response.data.error
-      );
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  useEffect(() => {
-    getData(page);
+    fetchData();
   }, [page]);
 
   useEffect(() => {
+    const checkForNewPosts = async () => {
+      try {
+        const res = await axios.get(`/api/publications?page=1`);
+        const latestPostId = res.data.data[0]?.id;
+        if (data.length > 0 && data[0].id < latestPostId) {
+          setNewPosts(true);
+        }
+      } catch (error) {
+        console.error("Error checking for new posts:", error.message);
+      }
+    };
+
     const interval = setInterval(() => {
       checkForNewPosts();
     }, 10000); // Check for new posts every 10 seconds
@@ -91,16 +66,74 @@ export default function Wall() {
     return () => clearInterval(interval);
   }, [data]);
 
+  const handleRefresh = async () => {
+    setPage(1);
+    setData([]);
+    setNewPosts(false);
+  };
+
+  const postPublication = async (newPublication) => {
+    try {
+      await axios.post("/api/publications", newPublication, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      handleRefresh();
+    } catch (error) {
+      console.error(
+        "Error posting publication:",
+        error.message,
+        error.response?.data?.error
+      );
+    }
+  };
+
   const removePublication = (id) => {
     setData((prevData) =>
       prevData.filter((publication) => publication.id !== id)
     );
   };
 
+  useEffect(() => {
+    const mainElement = mainRef.current ?? document.querySelector("main");
+    console.log({ mainElement });
+
+    const scrollHandler = () => {
+      if (mainElement) {
+        const { scrollTop, clientHeight, scrollHeight } = mainElement;
+
+        if (
+          scrollTop + clientHeight >= scrollHeight - 1 &&
+          !loading &&
+          hasMore
+        ) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      }
+    };
+
+    if (mainElement) {
+      mainElement.addEventListener("scroll", scrollHandler);
+
+      return () => {
+        mainElement.removeEventListener("scroll", scrollHandler);
+      };
+    }
+  }, [loading, hasMore]);
+
+  useEffect(() => {
+    setPageIsLoading(isLoading);
+  }, [isLoading]);
+
   return (
-    <div className="w-screen h-screen">
+    <div className="flex flex-col w-screen h-screen bg-gray-200">
+      {isLoading && <LoadingPage />}
       <JournalHeader />
-      <main className="h-full flex flex-col items-center gap-4 py-12 relative overflow-y-auto">
+      <main
+        ref={mainRef}
+        className="wall flex-1 flex flex-col items-center gap-4 py-12 overflow-y-auto"
+      >
         <DialogCart postPublication={postPublication} />
         {data.map((publication, key) => (
           <Publication
@@ -123,22 +156,19 @@ export default function Wall() {
           </div>
         )}
       </main>
-      {
-        // refreshing btn
-        newPosts && (
-          <Tooltip content="New publications available!" style="light">
-            <Button
-              className="fixed right-12 bottom-12"
-              size="sm"
-              color="failure"
-              onClick={handleRefresh}
-              pill
-            >
-              <ArrowPathIcon className="w-5 px-0 py-[6px]" />
-            </Button>
-          </Tooltip>
-        )
-      }
+      {newPosts && (
+        <Tooltip content="New publications available!" style="light">
+          <Button
+            className="fixed right-12 bottom-12"
+            size="sm"
+            color="failure"
+            onClick={handleRefresh}
+            pill
+          >
+            <ArrowPathIcon className="w-5 px-0 py-[6px]" />
+          </Button>
+        </Tooltip>
+      )}
     </div>
   );
 }

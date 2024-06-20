@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Card, Button, Dropdown } from "flowbite-react";
+import { Card, Button, Dropdown, Label, TextInput } from "flowbite-react";
 import {
   CommentSection,
   EditPublicationModal,
   UserAvatar,
   VoteButtons,
+  Media,
+  DeleteModal,
 } from "./publication_components";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 import axios from "../../api/axios";
-import DeleteModal from "./publication_components/DeletePublicationModal";
 
 const Publication = ({ publication, onRemove }) => {
   const auth = useAuth();
@@ -28,6 +29,7 @@ const Publication = ({ publication, onRemove }) => {
     has_commented,
     user_vote,
     created_at,
+    media_files,
   } = publication;
 
   const [readyToComment, setReadyToComment] = useState(false);
@@ -122,10 +124,6 @@ const Publication = ({ publication, onRemove }) => {
     formData.append("publication_id", id);
     formData.append("user_id", auth.user.id);
     formData.append("content", newComment);
-
-    for (let i = 0; i < selectedFiles.length; i++) {
-      formData.append("media_files[]", selectedFiles[i]);
-    }
 
     try {
       const response = await axios.post("/api/comments", formData);
@@ -231,6 +229,9 @@ const Publication = ({ publication, onRemove }) => {
       <div>
         <div className="font-semibold">{newPublication.title}</div>
         <div className="mt-1 mb-6 text">{newPublication.content}</div>
+        {media_files.map((file, key) => (
+          <Media key={key} file={file} />
+        ))}
         <VoteButtons
           handleUpvote={handleUpvote}
           handleDownvote={handleDownvote}
@@ -254,7 +255,6 @@ const Publication = ({ publication, onRemove }) => {
               value={newComment}
               onChange={handleCommentChange}
             />
-            <FileInput multiple onChange={handleFileChange} />
             <Button className="text-white p-0" color="dark" type="submit" pill>
               Add
             </Button>
