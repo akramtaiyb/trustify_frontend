@@ -1,8 +1,9 @@
 import React from "react";
 
-export default function LoaderSpinner({ className }) {
+export default function LoaderSpinner({ ref, className }) {
   return (
     <svg
+      ref={ref}
       xmlns="http://www.w3.org/2000/svg"
       //   width="1em"
       //   height="1em"

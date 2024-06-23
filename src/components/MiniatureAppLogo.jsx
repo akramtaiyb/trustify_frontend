@@ -13,10 +13,10 @@ export default function MiniatureAppLogo() {
       className="w-10 h-fit cursor-pointer"
       onClick={() => navigate("/journal")}
     >
-      <circle cx="51.5" cy="51.5" r="51.5" fill="#111827" />
+      <circle cx="51.5" cy="51.5" r="51.5" fill="#72B01D" />
       <path
         d="M14.9736 51.082L24.177 60.2854L40.8858 43.5767"
-        stroke="#72B01D"
+        stroke="white"
         strokeWidth="8"
       />
       <path

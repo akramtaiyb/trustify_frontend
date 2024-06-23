@@ -11,6 +11,7 @@ import {
 } from "./publication_components";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 import axios from "../../api/axios";
+import Hashtag from "./Hashtag";
 
 const Publication = ({ publication, onRemove }) => {
   const auth = useAuth();
@@ -22,12 +23,11 @@ const Publication = ({ publication, onRemove }) => {
     user,
     comments,
     votes,
-    has_upvoted,
-    has_downvoted,
-    has_commented,
     user_vote,
     created_at,
     media_files,
+    classification_score,
+    classification,
   } = publication;
 
   const [readyToComment, setReadyToComment] = useState(false);
@@ -63,7 +63,7 @@ const Publication = ({ publication, onRemove }) => {
       votes.some((v) => v.user_id === user.id && v.vote === "fake")
     );
     setCurrentVoteId(user_vote);
-    setUserHasCommented(comments.some((c) => c.user_id === user.id));
+    setUserHasCommented(comments.some((c) => c.user_id === auth.user.id));
     setNewPublication({
       title: title,
       content: content,
@@ -207,8 +207,27 @@ const Publication = ({ publication, onRemove }) => {
     }));
   };
 
+  // Rendering Hashtags
+  const renderHashtags = (text) => {
+    // Regular expression to find hashtags (assuming hashtags start with # and are alphanumeric)
+    const hashtagRegex = /#[A-Za-z0-9_]+/g;
+    const parts = text.split(hashtagRegex); // Split text into parts based on hashtags
+    const matches = text.match(hashtagRegex); // Find all hashtags
+
+    return parts.map((part, index) =>
+      matches && matches[index] ? (
+        <React.Fragment key={index}>
+          {part}
+          <Hashtag tag={matches[index]} />
+        </React.Fragment>
+      ) : (
+        part
+      )
+    );
+  };
+
   return (
-    <Card className="lg:min-w-[40%] max-w-[60%] lg:max-w-[40%] rounded-3xl">
+    <Card className="lg:min-w-[40%] max-w-[60%] lg:max-w-[40%] rounded-2xl">
       <div className="flex flex-row items-center justify-between">
         <UserAvatar user={user} created_at={created_at} />
         {user.id === auth.user.id && (
@@ -226,8 +245,12 @@ const Publication = ({ publication, onRemove }) => {
         )}
       </div>
       <div className="w-full h-fit">
-        <div className="font-semibold">{newPublication.title}</div>
-        <div className="mt-1 mb-6 text">{newPublication.content}</div>
+        <div className="font-semibold">
+          {renderHashtags(newPublication.title)}
+        </div>
+        <div className="mt-1 mb-6 text">
+          {renderHashtags(newPublication.content)}
+        </div>
         {media_files.map((file, key) => (
           <Media key={key} file={file} />
         ))}
@@ -241,6 +264,8 @@ const Publication = ({ publication, onRemove }) => {
           commentCount={commentCount}
           userHasCommented={userHasCommented}
           handleAddCommentButton={handleAddCommentButton}
+          classification={classification}
+          classificationScore={classification_score}
         />
       </div>
       {readyToComment && (

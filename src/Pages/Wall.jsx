@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import JournalHeader from "../templates/JournalHeader";
 import Publication from "../components/Publication";
 import axios from "../../api/axios";
@@ -9,6 +9,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import { Button, Tooltip } from "flowbite-react";
 import { useAuth } from "../../context/AuthContext";
 import LoadingPage from "../components/LoadingPage";
+import { useInView } from "react-intersection-observer";
 
 export default function Wall() {
   const { isLoading } = useAuth();
@@ -16,11 +17,12 @@ export default function Wall() {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [pageIsLoading, setPageIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [newPosts, setNewPosts] = useState(false);
 
-  const mainRef = useRef(null);
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,17 +36,20 @@ export default function Wall() {
                 existingPublication.id === newPublication.id
             )
         );
-
         setData((prevData) => [...prevData, ...newData]);
         setHasMore(res.data.current_page < res.data.last_page);
+        setPage((prevPage) => prevPage + 1);
       } catch (error) {
         console.error("Error fetching data:", error.message);
       }
       setLoading(false);
     };
 
-    fetchData();
-  }, [page]);
+    if (inView && hasMore) {
+      console.log(inView);
+      fetchData();
+    }
+  }, [inView, page]); // Only run effect when inView or page changes
 
   useEffect(() => {
     const checkForNewPosts = async () => {
@@ -59,14 +64,12 @@ export default function Wall() {
       }
     };
 
-    const interval = setInterval(() => {
-      checkForNewPosts();
-    }, 10000); // Check for new posts every 10 seconds
+    const interval = setInterval(checkForNewPosts, 10000);
 
     return () => clearInterval(interval);
-  }, [data]);
+  }, [data]); // Check for new posts every 10 seconds
 
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setPage(1);
     setData([]);
     setNewPosts(false);
@@ -92,7 +95,6 @@ export default function Wall() {
   const removePublication = async (id) => {
     try {
       await axios.delete(`/api/publications/${id}`);
-
       setData((prevData) =>
         prevData.filter((publication) => publication.id !== id)
       );
@@ -101,49 +103,18 @@ export default function Wall() {
     }
   };
 
-  useEffect(() => {
-    const mainElement = mainRef.current ?? document.querySelector("main");
-    console.log({ mainElement });
-
-    const scrollHandler = () => {
-      if (mainElement) {
-        const { scrollTop, clientHeight, scrollHeight } = mainElement;
-
-        if (
-          scrollTop + clientHeight >= scrollHeight - 1 &&
-          !loading &&
-          hasMore
-        ) {
-          setPage((prevPage) => prevPage + 1);
-        }
-      }
-    };
-
-    if (mainElement) {
-      mainElement.addEventListener("scroll", scrollHandler);
-
-      return () => {
-        mainElement.removeEventListener("scroll", scrollHandler);
-      };
-    }
-  }, [loading, hasMore]);
-
-  useEffect(() => {
-    setPageIsLoading(isLoading);
-  }, [isLoading]);
-
   return (
-    <div className="flex flex-col w-screen h-screen bg-gray-200">
+    <div className="w-screen h-full flex flex-col items-center justify-center">
       {isLoading && <LoadingPage />}
       <JournalHeader />
       <main
-        ref={mainRef}
-        className="wall flex-1 flex flex-col items-center gap-4 py-12 overflow-y-auto"
+        className="wall w-full flex-1 flex flex-col items-center gap-4 py-12 overflow-y-auto"
+        ref={ref}
       >
         <DialogCart postPublication={postPublication} />
-        {data.map((publication, key) => (
+        {data.map((publication, index) => (
           <Publication
-            key={key}
+            key={index}
             publication={publication}
             onRemove={removePublication}
           />

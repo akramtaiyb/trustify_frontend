@@ -28,7 +28,7 @@ export default function Login() {
     <div>
       <div className="w-screen h-screen flex flex-col items-center justify-center">
         <ApplicationLogo />
-        <Card className="bg-gray-200 border-gray-300 rounded-2xl">
+        <Card className="rounded-2xl">
           <form onSubmit={handleSubmit} className="w-96 flex flex-col gap-4">
             <div className="text-xl font-bold">Login</div>
             <Link

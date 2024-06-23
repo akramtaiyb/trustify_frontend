@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Dropdown } from "flowbite-react";
+import { Avatar, Button, Dropdown } from "flowbite-react";
 import MiniatureAppLogo from "../components/MiniatureAppLogo";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -14,13 +14,11 @@ export default function JournalHeader() {
   const navigate = useNavigate();
 
   return (
-    <div className="z-10 w-screen px-9 sticky bg-white top-0 flex items-center justify-between border-b py-4">
+    <div className="z-10 w-screen px-9 sticky bg-white top-0 flex items-center justify-between border-b shadow-sm-light py-4">
       <MiniatureAppLogo />
       {/* <Avatar img="../assets/random_profile.png" /> */}
       <div className="flex items-center justify-between gap-2">
-        <div className="rounded-3xl w-10 h-10 bg-gray-500 text-white text-md font-bold flex items-center justify-center">
-          {user.name.at(0)}
-        </div>
+        <Avatar placeholderInitials={user.name.charAt(0)} rounded />
         <div className="font-bold text-md">{user.name}</div>
       </div>
       <Dropdown

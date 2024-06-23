@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import JournalHeader from "../templates/JournalHeader";
-import { Card } from "flowbite-react";
+import { Avatar, Badge, Card } from "flowbite-react";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
 import { Datetime } from "../../utils/datetime";
@@ -12,6 +12,7 @@ import {
   ArrowTrendingUpIcon,
   ArrowUpCircleIcon,
   ChatBubbleLeftRightIcon,
+  CheckBadgeIcon,
   DocumentDuplicateIcon,
 } from "@heroicons/react/24/solid";
 import Publication from "../components/Publication";
@@ -69,11 +70,28 @@ export default function Profile() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-6">
-              <div className="rounded-full w-20 h-20 bg-gray-500 text-white text-3xl font-bold flex items-center justify-center">
-                {profile?.name.at(0)}
-              </div>
+              <Avatar
+                className="text-4xl font-bold"
+                placeholderInitials={user.name.charAt(0)}
+                rounded
+                size="lg"
+              />
               <div className="flex flex-col items-center justify-center gap-2">
-                <div className="text-xl font-bold">{profile?.name}</div>
+                <div className="text-xl font-bold">
+                  {profile?.name}&nbsp;
+                  <div className="w-full text-center text-sm font-semibold text-gray-600">
+                    @{profile?.username}
+                  </div>
+                </div>
+                {profile.is_expert ? (
+                  <Badge
+                    icon={CheckBadgeIcon}
+                    color="success"
+                    className="py-[1px]"
+                  >
+                    Expert
+                  </Badge>
+                ) : null}
                 <div>
                   Joined {profile ? Datetime(profile?.created_at) : null}
                 </div>
@@ -119,6 +137,9 @@ export default function Profile() {
             </div>
           )}
         </Card>
+        <div className="min-w-[70%] text-center font-bold text-xl text-gray-400">
+          Journal
+        </div>
         {publications.map((publication, key) => (
           <>
             <Publication

@@ -66,7 +66,7 @@ export default function DialogCart({ postPublication }) {
   };
 
   return (
-    <Card className="min-w-96 max-w-[60%] lg:max-w-[40%] rounded-3xl">
+    <Card className="min-w-96 max-w-[60%] lg:max-w-[40%] rounded-2xl">
       <div className="space-y-4">
         <div className="text-2xl font-bold">Let's op-ed!</div>
         <div className="font-regular text-sm">

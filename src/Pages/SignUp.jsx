@@ -17,7 +17,7 @@ export default function SignUp() {
       <div className="w-screen h-screen flex flex-col items-center justify-center">
         <ApplicationLogo />
         <div className="w-fit">
-          <Card className="bg-gray-200 border-gray-300 rounded-2xl">
+          <Card className="rounded-2xl">
             <div className="text-xl font-bold"> Sign Up</div>
             <form className="w-96 flex flex-col gap-4">
               <Link
