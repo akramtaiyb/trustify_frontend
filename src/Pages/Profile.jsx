@@ -54,7 +54,7 @@ export default function Profile() {
   }, [fetchProfile]);
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center">
+    <div className="w-screen h-full flex flex-col items-center justify-center">
       <JournalHeader />
       <main
         // ref={mainRef}
@@ -72,7 +72,7 @@ export default function Profile() {
             <div className="flex flex-col items-center justify-center gap-6">
               <Avatar
                 className="text-4xl font-bold"
-                placeholderInitials={user.name.charAt(0)}
+                placeholderInitials={profile?.name.charAt(0)}
                 rounded
                 size="lg"
               />

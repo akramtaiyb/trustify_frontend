@@ -46,7 +46,6 @@ export default function Wall() {
     };
 
     if (inView && hasMore) {
-      console.log(inView);
       fetchData();
     }
   }, [inView, page]); // Only run effect when inView or page changes
@@ -77,12 +76,14 @@ export default function Wall() {
 
   const postPublication = async (newPublication) => {
     try {
-      await axios.post("/api/publications", newPublication, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      handleRefresh();
+      await axios
+        .post("/api/publications", newPublication, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((res) => setData((prev_data) => [res.data, ...prev_data]));
+      // handleRefresh();
     } catch (error) {
       console.error(
         "Error posting publication:",
@@ -92,12 +93,15 @@ export default function Wall() {
     }
   };
 
-  const removePublication = async (id) => {
+  const removePublication = async (pubId) => {
     try {
-      await axios.delete(`/api/publications/${id}`);
-      setData((prevData) =>
-        prevData.filter((publication) => publication.id !== id)
-      );
+      await axios
+        .delete(`/api/publications/${pubId}`)
+        .then(
+          setData((prevData) =>
+            prevData.filter((publication) => publication.id !== pubId)
+          )
+        );
     } catch (error) {
       console.error("Error deleting publication:", error);
     }

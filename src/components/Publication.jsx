@@ -57,10 +57,10 @@ const Publication = ({ publication, onRemove }) => {
     setCommentCount(comments.length);
     setCurrentComments(comments);
     setUserHasUpvoted(
-      votes.some((v) => v.user_id === user.id && v.vote === "real")
+      votes.some((v) => v.user_id === auth.user.id && v.vote === "real")
     );
     setUserHasDownvoted(
-      votes.some((v) => v.user_id === user.id && v.vote === "fake")
+      votes.some((v) => v.user_id === auth.user.id && v.vote === "fake")
     );
     setCurrentVoteId(user_vote);
     setUserHasCommented(comments.some((c) => c.user_id === auth.user.id));
@@ -71,6 +71,11 @@ const Publication = ({ publication, onRemove }) => {
   }, [publication]);
 
   const handleVote = async (voteType) => {
+    console.log("handleVote called with voteType:", voteType);
+    console.log("Current voteId:", currentVoteId);
+    console.log("UserHasUpvoted:", userHasUpvoted);
+    console.log("UserHasDownvoted:", userHasDownvoted);
+
     if (voteType === "upvote" && userHasDownvoted) {
       setUserHasUpvoted(true);
       setUpvotesCount((prevCount) => prevCount + 1);
@@ -109,7 +114,7 @@ const Publication = ({ publication, onRemove }) => {
           setDownvotesCount((prevCount) => prevCount + 1);
         }
 
-        setCurrentVoteId(response.data);
+        setCurrentVoteId(response.data.id);
       } catch (error) {
         console.error(error.message);
       }
